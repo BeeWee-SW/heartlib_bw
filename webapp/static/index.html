@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HeartMuLa Studio</title>
+<meta name="color-scheme" content="dark">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#127925;</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand__mark" aria-hidden="true">♪</div>
+    <div>
+      <div class="brand__title">HeartMuLa Studio</div>
+      <div class="brand__sub" data-i18n="app.subtitle">Musik aus Text · HeartMuLa</div>
+    </div>
+  </div>
+
+  <div class="topbar__spacer"></div>
+
+  <div class="topbar__tools">
+    <!-- #status-text is written by renderStatus(), so it carries no data-i18n:
+         a blanket apply() would otherwise reset it to the placeholder. -->
+    <span class="chipstat" id="status-chip" aria-live="polite">
+      <span class="dot" id="status-dot"></span>
+      <span id="status-text">…</span>
+    </span>
+    <span class="chipstat" id="device-chip" hidden></span>
+    <div class="langswitch" role="group" data-i18n-attr="aria-label:lang.label">
+      <button type="button" data-lang="de" aria-pressed="false">DE</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ------------------------------------------------------------ input -->
+  <div class="column">
+
+    <section class="card" id="setup-card" hidden>
+      <div class="card__head">
+        <h2 class="card__title"><span class="glyph">⚙</span><span data-i18n="setup.title">Einrichtung</span></h2>
+      </div>
+      <p class="card__note" data-i18n="setup.intro"></p>
+
+      <div id="setup-torch" hidden>
+        <p class="card__note" data-i18n="setup.torch_missing"></p>
+        <pre class="code" id="setup-torch-cmd"></pre>
+      </div>
+
+      <div id="setup-ckpt">
+        <div class="chipgroup__label" style="margin-top:16px" data-i18n="setup.components"></div>
+        <div class="setup__list" id="setup-list"></div>
+
+        <div class="inline">
+          <label class="label" for="setup-source" data-i18n="setup.source"></label>
+          <select id="setup-source" style="width:auto">
+            <option value="huggingface">Hugging Face</option>
+            <option value="modelscope">ModelScope</option>
+          </select>
+          <button class="btn btn--primary" id="btn-download" type="button" data-i18n="setup.download"></button>
+          <button class="btn btn--ghost" id="btn-refresh" type="button" data-i18n="setup.refresh"></button>
+        </div>
+
+        <div class="progress" id="download-progress" style="margin-top:14px">
+          <div class="bar"><div class="bar__fill" id="download-bar"></div></div>
+          <div class="progress__meta"><span id="download-msg" class="grow"></span></div>
+        </div>
+
+        <p class="card__note" data-i18n="setup.cli_hint" style="margin-top:14px"></p>
+        <pre class="code" id="setup-cli"></pre>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title"><span class="glyph">✦</span><span data-i18n="style.title">Style</span></h2>
+        <span class="card__hint" data-i18n="style.hint"></span>
+      </div>
+
+      <div class="field">
+        <label class="label" for="tags" data-i18n="style.label"></label>
+        <input type="text" id="tags" autocomplete="off"
+               data-i18n-attr="placeholder:style.placeholder">
+        <div class="meta-row">
+          <span id="tag-count"></span>
+          <span class="grow"></span>
+          <button class="btn btn--ghost btn--icon" id="btn-clear-tags" type="button" data-i18n="style.clear"></button>
+        </div>
+        <div class="tagpreview" id="tag-preview"></div>
+      </div>
+
+      <div id="chip-groups" style="margin-top:16px"></div>
+      <p class="card__note" data-i18n="style.note"></p>
+    </section>
+
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title"><span class="glyph">✎</span><span data-i18n="lyrics.title">Lyrics</span></h2>
+        <span class="card__hint" data-i18n="lyrics.hint"></span>
+      </div>
+
+      <div class="chipgroup">
+        <div class="chipgroup__label" data-i18n="lyrics.markers"></div>
+        <div class="chips" id="marker-chips"></div>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label class="label sr-only" for="lyrics" data-i18n="lyrics.label"></label>
+        <textarea id="lyrics" spellcheck="false" data-i18n-attr="placeholder:lyrics.placeholder"></textarea>
+        <div class="meta-row">
+          <span id="lyrics-chars"></span>
+          <span id="lyrics-tokens"></span>
+          <span id="lyrics-warn" class="warn"></span>
+          <span class="grow"></span>
+          <select id="example-select" style="width:auto">
+            <option value="" data-i18n="lyrics.example"></option>
+          </select>
+          <button class="btn btn--ghost btn--icon" id="btn-clear-lyrics" type="button" data-i18n="lyrics.clear"></button>
+        </div>
+      </div>
+      <p class="card__note" data-i18n="lyrics.note"></p>
+    </section>
+  </div>
+
+  <!-- --------------------------------------------------------- settings -->
+  <div class="column">
+
+    <section class="card card--accent">
+      <div class="card__head">
+        <h2 class="card__title"><span class="glyph">◈</span><span data-i18n="settings.title">Einstellungen</span></h2>
+        <span class="card__hint" data-i18n="settings.hint"></span>
+      </div>
+
+      <div id="sliders"></div>
+
+      <div class="field" style="margin-top:18px">
+        <label class="label" for="seed" data-i18n="p.seed"></label>
+        <div class="inline">
+          <input type="number" id="seed" class="grow" min="0" max="4294967295"
+                 data-i18n-attr="placeholder:p.seed.placeholder">
+          <button class="btn btn--icon" id="btn-seed" type="button"
+                  data-i18n-attr="title:p.seed.random;aria-label:p.seed.random">🎲</button>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="seed-lock">
+          <span class="toggle__track"></span>
+          <span class="toggle__text">
+            <span data-i18n="p.seed.lock"></span>
+            <small data-i18n="p.seed.lock.desc"></small>
+          </span>
+        </label>
+        <p class="slider__desc" data-i18n="p.seed.desc"></p>
+      </div>
+
+      <details class="advanced">
+        <summary data-i18n="advanced.title"></summary>
+        <div class="advanced__body">
+          <div id="advanced-sliders"></div>
+          <div class="grid-2" style="margin-top:16px">
+            <div class="field">
+              <label class="label" for="audio-format" data-i18n="p.format"></label>
+              <select id="audio-format"></select>
+            </div>
+            <div class="field">
+              <label class="label" for="song-title" data-i18n="p.title"></label>
+              <input type="text" id="song-title" data-i18n-attr="placeholder:p.title.placeholder">
+            </div>
+          </div>
+          <p class="card__note" data-i18n="advanced.note"></p>
+          <p class="card__note" id="advanced-devices" data-i18n="advanced.devices"></p>
+        </div>
+      </details>
+    </section>
+
+    <section class="card">
+      <button class="btn btn--primary btn--block" id="btn-generate" type="button" disabled>
+        <span data-i18n="generate">Song erzeugen</span>
+      </button>
+
+      <div class="progress" id="gen-progress" style="margin-top:16px">
+        <div class="progress__stages" id="gen-stages"></div>
+        <div class="bar"><div class="bar__fill" id="gen-bar"></div></div>
+        <div class="progress__meta">
+          <span id="gen-msg" class="grow"></span>
+          <span id="gen-elapsed"></span>
+          <span id="gen-eta"></span>
+        </div>
+        <button class="btn btn--ghost btn--danger" id="btn-cancel" type="button" data-i18n="generate.cancel"></button>
+      </div>
+
+      <p class="card__note" id="gen-hint" data-i18n="progress.hint"></p>
+
+      <div class="result" id="result">
+        <div class="card__head" style="margin-top:16px;margin-bottom:6px">
+          <h3 class="card__title"><span class="glyph">▶</span><span data-i18n="result.title"></span></h3>
+        </div>
+        <div class="song__title" id="result-title"></div>
+        <audio id="result-audio" controls preload="metadata"></audio>
+        <div class="song__facts" id="result-facts"></div>
+        <div class="song__actions">
+          <a class="btn" id="result-download" download data-i18n="result.download"></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title"><span class="glyph">≡</span><span data-i18n="history.title">Historie</span></h2>
+        <span class="card__hint" data-i18n="history.hint"></span>
+      </div>
+      <div class="history" id="history"></div>
+    </section>
+  </div>
+</main>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>

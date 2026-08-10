@@ -1,0 +1,6 @@
+# Web layer only. The model itself comes from the `heartlib` package —
+# install it with `pip install -e .` from the repository root.
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.5
+huggingface_hub>=0.26

@@ -135,6 +135,17 @@ python ./examples/run_music_generation.py --model_path=./ckpt --version="3B"
 
 By default this command will generate a piece of music conditioned on lyrics and tags provided in `./assets` folder. The output music will be saved at `./assets/output.mp3`.
 
+#### 🎛️ Web UI
+
+If you prefer a browser over the command line, this repo also ships **HeartMuLa Studio** — a local web app with a style field, a lyrics editor with structure markers, sliders for every generation setting, a seed control, a song history and a built-in checkpoint downloader. It is bilingual (English/German) and starts even before the checkpoints are in place.
+
+```
+pip install -r webapp/requirements.txt
+python -m webapp.main --open
+```
+
+See [`webapp/README.md`](./webapp/README.md) for details.
+
 #### FAQs
 
 1. How to specify lyrics and tags?
