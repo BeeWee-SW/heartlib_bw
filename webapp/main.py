@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 import webbrowser
 from pathlib import Path
 
@@ -55,9 +56,20 @@ def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     config = build_config(args)
 
-    import uvicorn
+    try:
+        import uvicorn
 
-    from .routes import app
+        from .routes import app
+    except ImportError as exc:
+        # torch and heartlib are optional at this point — the app serves a setup
+        # screen without them — but the web layer itself has to be there.
+        raise SystemExit(
+            f"\n  Missing dependency: {exc.name}\n"
+            "  The web layer is not installed in this environment.\n\n"
+            "  Install it with:\n"
+            "      pip install -r webapp/requirements.txt\n"
+            f"  (interpreter in use: {sys.executable})\n"
+        ) from exc
 
     url = f"http://{'127.0.0.1' if config.host in {'0.0.0.0', '::'} else config.host}:{config.port}"
     print(f"\n  HeartMuLa Studio  ->  {url}")

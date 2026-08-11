@@ -20,6 +20,19 @@ if not exist ".venv\Scripts\python.exe" (
     exit /b 1
 )
 
+rem A missing web layer is the one failure that produces a bare traceback
+rem before the app can say anything useful, so it is caught here.
+".venv\Scripts\python.exe" -c "import fastapi, uvicorn" 2>nul
+if errorlevel 1 (
+    echo.
+    echo   [FEHLER] Die Web-Schicht fehlt in der virtuellen Umgebung.
+    echo            Nachinstallieren mit:
+    echo                .venv\Scripts\python.exe -m pip install -r webapp\requirements.txt
+    echo.
+    pause
+    exit /b 1
+)
+
 echo.
 echo   Starte HeartMuLa Studio ... zum Beenden Strg+C druecken.
 echo.

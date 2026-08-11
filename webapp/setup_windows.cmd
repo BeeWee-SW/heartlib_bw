@@ -139,10 +139,33 @@ if errorlevel 1 (
 )
 
 rem -- 5. the web layer --------------------------------------------------------
-echo   [5/5] Installiere die Web-Schicht ...
+echo   [5/6] Installiere die Web-Schicht ...
 "%VPY%" -m pip install -r webapp\requirements.txt
 if errorlevel 1 (
     echo   [FEHLER] Installation der Web-Schicht fehlgeschlagen.
+    goto :fail
+)
+
+rem -- 6. verify ---------------------------------------------------------------
+rem pip can exit 0 and still leave a package unimportable (wrong environment,
+rem a partially written install, a stale cache). Reporting success without
+rem checking would push that failure to first start, as a raw traceback.
+echo   [6/6] Pruefe Installation ...
+"%VPY%" -c "import fastapi, uvicorn, pydantic" 2>nul
+if errorlevel 1 (
+    echo.
+    echo   [FEHLER] Die Web-Schicht ist nicht importierbar, obwohl pip
+    echo            keinen Fehler gemeldet hat.
+    echo            Bitte einzeln nachinstallieren und die Ausgabe pruefen:
+    echo                .venv\Scripts\python.exe -m pip install -r webapp\requirements.txt
+    goto :fail
+)
+"%VPY%" -c "import heartlib" 2>nul
+if errorlevel 1 (
+    echo.
+    echo   [FEHLER] heartlib ist nicht importierbar.
+    echo            Bitte nachinstallieren und die Ausgabe pruefen:
+    echo                .venv\Scripts\python.exe -m pip install -e .
     goto :fail
 )
 
