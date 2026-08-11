@@ -151,20 +151,28 @@ rem pip can exit 0 and still leave a package unimportable (wrong environment,
 rem a partially written install, a stale cache). Reporting success without
 rem checking would push that failure to first start, as a raw traceback.
 echo   [6/6] Pruefe Installation ...
-"%VPY%" -c "import fastapi, uvicorn, pydantic" 2>nul
+"%VPY%" -c "import fastapi, uvicorn, pydantic" >nul 2>&1
 if errorlevel 1 (
     echo.
     echo   [FEHLER] Die Web-Schicht ist nicht importierbar, obwohl pip
-    echo            keinen Fehler gemeldet hat.
-    echo            Bitte einzeln nachinstallieren und die Ausgabe pruefen:
+    echo            keinen Fehler gemeldet hat. Der echte Fehler lautet:
+    echo.
+    rem Re-run without suppression: hiding this is what made the problem
+    rem undiagnosable in the first place.
+    "%VPY%" -c "import fastapi, uvicorn, pydantic"
+    echo.
+    echo            Nachinstallieren und die Ausgabe vollstaendig lesen:
     echo                .venv\Scripts\python.exe -m pip install -r webapp\requirements.txt
     goto :fail
 )
-"%VPY%" -c "import heartlib" 2>nul
+"%VPY%" -c "import heartlib" >nul 2>&1
 if errorlevel 1 (
     echo.
-    echo   [FEHLER] heartlib ist nicht importierbar.
-    echo            Bitte nachinstallieren und die Ausgabe pruefen:
+    echo   [FEHLER] heartlib ist nicht importierbar. Der echte Fehler lautet:
+    echo.
+    "%VPY%" -c "import heartlib"
+    echo.
+    echo            Nachinstallieren und die Ausgabe vollstaendig lesen:
     echo                .venv\Scripts\python.exe -m pip install -e .
     goto :fail
 )
