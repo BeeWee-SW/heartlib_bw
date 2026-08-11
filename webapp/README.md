@@ -157,6 +157,25 @@ There is no supported CPU or MPS path.
 - **History** lives in `outputs/history.json` next to the audio files. Deleting
   an entry removes its file too.
 
+### Troubleshooting
+
+**"No module named uvicorn" right after a successful install.** Check for a pip
+target directory:
+
+```cmd
+echo %PIP_TARGET%
+.venv\Scripts\python.exe -m pip config list
+```
+
+A machine-wide `PIP_TARGET` — ComfyUI and embedded-Python setups often set one,
+pointing at something like `D:\AI\python_embeded\packages` — overrides the
+virtual environment. pip writes there, exits 0, prints "Successfully
+installed", and nothing is importable. `setup_windows.cmd` clears it for its
+own process; on other platforms, `unset PIP_TARGET` before installing.
+
+**"Unknown compiler(s)" while building NumPy.** The interpreter is too new. See
+the Python version note under *Install*.
+
 ### Files
 
 ```
@@ -330,6 +349,26 @@ oder MPS-Pfad gibt es nicht.
   Das Feld bleibt freier Text.
 - **Historie** liegt als `outputs/history.json` neben den Audiodateien. Beim
   Löschen eines Eintrags verschwindet auch die Datei.
+
+### Fehlersuche
+
+**„No module named uvicorn" direkt nach erfolgreicher Installation.** Prüfen
+Sie, ob ein pip-Zielverzeichnis gesetzt ist:
+
+```cmd
+echo %PIP_TARGET%
+.venv\Scripts\python.exe -m pip config list
+```
+
+Ein systemweites `PIP_TARGET` — ComfyUI- und Embedded-Python-Installationen
+setzen gern eines, etwa auf `D:\AI\python_embeded\packages` — sticht die
+virtuelle Umgebung aus. pip schreibt dorthin, endet mit Erfolgscode, meldet
+„Successfully installed", und importierbar ist trotzdem nichts.
+`setup_windows.cmd` löscht die Variable für seinen eigenen Prozess; auf anderen
+Systemen vor der Installation `unset PIP_TARGET`.
+
+**„Unknown compiler(s)" beim Übersetzen von NumPy.** Der Interpreter ist zu
+neu — siehe den Hinweis zur Python-Version unter *Installation*.
 
 ### Dateien
 
