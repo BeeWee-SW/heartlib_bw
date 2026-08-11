@@ -12,16 +12,41 @@ Bilingual (DE/EN), dark theme, no build step, no CDN.
 
 ### 1. Install
 
+**Python 3.10, 3.11 or 3.12** — not 3.13 or 3.14. The pinned `numpy==2.0.2`
+publishes wheels only up to 3.12; on anything newer pip falls back to compiling
+NumPy from source and fails without a C toolchain.
+
+**Windows** — one script does the whole thing, including the virtual
+environment. It finds a suitable Python itself and never touches your PATH:
+
+```cmd
+webapp\setup_windows.cmd
+```
+
+Pass a different CUDA build if 12.4 is not what you have
+(`webapp\setup_windows.cmd cu128`), or `cpu` for a UI-only install.
+
+**Linux / macOS:**
+
 ```bash
-git clone <this repo> && cd heartlib_bw
-pip install -e .                        # the model library
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install torch torchaudio          # see pytorch.org for the CUDA build
+pip install -e .                      # the model library
 pip install -r webapp/requirements.txt  # the web layer
 ```
 
-Python 3.10 is what upstream recommends. A CUDA GPU is required for actual
-generation — see *Hardware* below.
+On Windows the PyPI `torch` wheels are CPU-only, which is why the script
+installs PyTorch from PyTorch's own index *before* `pip install -e .` — that
+stops pip from resolving the CPU variant first. A CUDA GPU is required for
+actual generation; see *Hardware* below.
 
 ### 2. Start
+
+```cmd
+webapp\start_windows.cmd
+```
+
+or, with the environment activated:
 
 ```bash
 python -m webapp.main --open
@@ -149,16 +174,41 @@ library, so the upstream repository stays cleanly rebaseable.
 
 ### 1. Installation
 
+**Python 3.10, 3.11 oder 3.12** — nicht 3.13 oder 3.14. Das fest angeforderte
+`numpy==2.0.2` liefert Wheels nur bis 3.12; darüber versucht pip, NumPy aus dem
+Quellcode zu übersetzen, und scheitert ohne C-Compiler.
+
+**Windows** — ein Skript erledigt alles inklusive virtueller Umgebung. Es sucht
+sich selbst ein passendes Python und ändert Ihren PATH nicht:
+
+```cmd
+webapp\setup_windows.cmd
+```
+
+Bei anderer CUDA-Version einfach angeben (`webapp\setup_windows.cmd cu128`),
+oder `cpu` für eine Installation ohne GPU.
+
+**Linux / macOS:**
+
 ```bash
-git clone <dieses Repo> && cd heartlib_bw
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install torch torchaudio            # CUDA-Variante siehe pytorch.org
 pip install -e .                        # die Modell-Bibliothek
 pip install -r webapp/requirements.txt  # die Web-Schicht
 ```
 
-Upstream empfiehlt Python 3.10. Für die eigentliche Erzeugung wird eine
-CUDA-GPU benötigt (siehe *Hardware*).
+Unter Windows sind die `torch`-Wheels auf PyPI reine CPU-Builds — deshalb
+installiert das Skript PyTorch *vor* `pip install -e .` aus dem PyTorch-eigenen
+Index, damit pip nicht zuerst die CPU-Variante auflöst. Für die eigentliche
+Erzeugung wird eine CUDA-GPU benötigt (siehe *Hardware*).
 
 ### 2. Start
+
+```cmd
+webapp\start_windows.cmd
+```
+
+oder, mit aktivierter Umgebung:
 
 ```bash
 python -m webapp.main --open

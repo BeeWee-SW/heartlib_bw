@@ -1,0 +1,4 @@
+# cmd.exe misparses batch files with Unix line endings, so pin them to CRLF
+# regardless of the checkout platform or the user's core.autocrlf setting.
+*.cmd text eol=crlf
+*.bat text eol=crlf
