@@ -26,6 +26,15 @@ webapp\setup_windows.cmd
 Pass a different CUDA build if 12.4 is not what you have
 (`webapp\setup_windows.cmd cu128`), or `cpu` for a UI-only install.
 
+The script does not rely on the `py` launcher — it is absent on machines where
+Python came from the Store, from winget, or from the 3.14 install manager — and
+probes the usual install locations directly. If your interpreter lives
+somewhere else, name it:
+
+```cmd
+webapp\setup_windows.cmd cu124 "C:\Path\to\Python312\python.exe"
+```
+
 **Linux / macOS:**
 
 ```bash
@@ -187,6 +196,15 @@ webapp\setup_windows.cmd
 
 Bei anderer CUDA-Version einfach angeben (`webapp\setup_windows.cmd cu128`),
 oder `cpu` für eine Installation ohne GPU.
+
+Das Skript setzt den `py`-Launcher **nicht** voraus — er fehlt, wenn Python aus
+dem Store, über winget oder mit dem 3.14-Install-Manager kam — und sucht die
+üblichen Installationspfade direkt ab. Liegt Ihr Interpreter woanders, geben
+Sie ihn an:
+
+```cmd
+webapp\setup_windows.cmd cu124 "C:\Pfad\zu\Python312\python.exe"
+```
 
 **Linux / macOS:**
 

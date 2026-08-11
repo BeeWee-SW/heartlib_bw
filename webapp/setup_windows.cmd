@@ -10,6 +10,8 @@ rem
 rem  Usage:   webapp\setup_windows.cmd            (CUDA 12.4, the common case)
 rem           webapp\setup_windows.cmd cu128      (other CUDA build)
 rem           webapp\setup_windows.cmd cpu        (no GPU - UI only)
+rem           webapp\setup_windows.cmd cu124 "C:\Path\to\python.exe"
+rem                                               (interpreter picked by hand)
 rem ---------------------------------------------------------------------------
 
 cd /d "%~dp0.."
@@ -21,12 +23,27 @@ echo.
 rem -- 1. find a usable interpreter -------------------------------------------
 rem numpy 2.0.2 ships wheels only up to Python 3.12; anything newer would try
 rem to compile from source and fail without a C compiler.
-set "PYCMD="
-call :findpy 3.12
-if not defined PYCMD call :findpy 3.11
-if not defined PYCMD call :findpy 3.10
+rem
+rem The py launcher is not assumed to exist: it is missing on machines where
+rem Python came from the Store, from winget, or from the 3.14 install manager.
+rem So the known install layouts are probed directly as well. An explicit path
+rem given as the second argument always wins.
+set "PYEXE="
 
-if not defined PYCMD (
+if not "%~2"=="" (
+    if exist "%~2" (
+        set "PYEXE=%~2"
+    ) else (
+        echo   [FEHLER] Angegebener Python-Pfad existiert nicht: %~2
+        goto :fail
+    )
+)
+
+if not defined PYEXE call :findpy 3.12 312
+if not defined PYEXE call :findpy 3.11 311
+if not defined PYEXE call :findpy 3.10 310
+
+if not defined PYEXE (
     echo   [FEHLER] Keine passende Python-Version gefunden.
     echo.
     echo   Benoetigt wird Python 3.10, 3.11 oder 3.12.
@@ -34,24 +51,37 @@ if not defined PYCMD (
     echo   dort keine fertigen Pakete, und ohne C-Compiler bricht die
     echo   Installation ab.
     echo.
+    echo   Gesucht wurde nach dem py-Launcher und unter:
+    echo     %LocalAppData%\Programs\Python\Python312\python.exe
+    echo     %LocalAppData%\Python\pythoncore-3.12-64\python.exe
+    echo     %ProgramFiles%\Python312\python.exe
+    echo     C:\Python312\python.exe
+    echo   ^(sowie den gleichen Pfaden fuer 3.11 und 3.10^)
+    echo.
     echo   Installieren Sie Python 3.12 von:
     echo     https://www.python.org/downloads/release/python-3129/
+    echo   Standardauswahl genuegt - eine PATH-Aenderung ist NICHT noetig.
     echo.
-    echo   Beim Installer genuegt die Standardauswahl - eine PATH-Aenderung
-    echo   ist NICHT noetig, dieses Skript findet die Version selbst.
+    echo   Liegt Python bei Ihnen woanders, geben Sie den Pfad direkt an:
+    echo     webapp\setup_windows.cmd cu124 "C:\Pfad\zu\python.exe"
     echo.
     goto :fail
 )
 
 echo   [1/5] Python gefunden:
-%PYCMD% -VV
+echo         !PYEXE!
+"!PYEXE!" -VV
+if errorlevel 1 (
+    echo   [FEHLER] Dieser Interpreter laesst sich nicht ausfuehren.
+    goto :fail
+)
 
 rem -- 2. virtual environment --------------------------------------------------
 if exist ".venv\Scripts\python.exe" (
     echo   [2/5] Vorhandene .venv wird weiterverwendet
 ) else (
     echo   [2/5] Lege virtuelle Umgebung .venv an ...
-    !PYCMD! -m venv .venv
+    "!PYEXE!" -m venv .venv
     if errorlevel 1 (
         echo   [FEHLER] Anlegen der virtuellen Umgebung fehlgeschlagen.
         goto :fail
@@ -127,9 +157,31 @@ pause
 exit /b 0
 
 rem ---------------------------------------------------------------------------
+rem  :findpy <dotted> <compact>   e.g.  call :findpy 3.12 312
+rem  Sets PYEXE to a full python.exe path, or leaves it undefined.
 :findpy
-py -%1 -c "import sys" >nul 2>&1
-if not errorlevel 1 set "PYCMD=py -%1"
+if defined PYEXE exit /b 0
+
+rem The launcher knows best when it is there. Its answer is written to a file
+rem rather than captured with for/f, which is fragile around nested quotes.
+del "%TEMP%\heartmula_py.txt" >nul 2>&1
+py -%1 -c "import sys;open(r'%TEMP%\heartmula_py.txt','w').write(sys.executable)" >nul 2>&1
+if exist "%TEMP%\heartmula_py.txt" (
+    set /p PYEXE=<"%TEMP%\heartmula_py.txt"
+    del "%TEMP%\heartmula_py.txt" >nul 2>&1
+)
+if defined PYEXE exit /b 0
+
+call :trypath "%LocalAppData%\Programs\Python\Python%2\python.exe"
+call :trypath "%LocalAppData%\Python\pythoncore-%1-64\python.exe"
+call :trypath "%ProgramFiles%\Python%2\python.exe"
+call :trypath "%ProgramFiles(x86)%\Python%2-32\python.exe"
+call :trypath "C:\Python%2\python.exe"
+exit /b 0
+
+:trypath
+if defined PYEXE exit /b 0
+if exist "%~1" set "PYEXE=%~1"
 exit /b 0
 
 :fail
