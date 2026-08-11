@@ -1,5 +1,6 @@
-# Web layer only. The model itself comes from the `heartlib` package —
-# install it with `pip install -e .` from the repository root.
+# Web layer only. The model itself comes from the `heartlib` package:
+# install that with `pip install -e .` from the repository root.
+# ASCII only on purpose - pip may decode this file with the system code page.
 fastapi>=0.110
 uvicorn[standard]>=0.27
 pydantic>=2.5
