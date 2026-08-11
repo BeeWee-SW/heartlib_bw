@@ -20,6 +20,21 @@ echo   HeartMuLa Studio - Einrichtung
 echo   Verzeichnis: %CD%
 echo.
 
+rem -- 0. neutralise pip redirection -------------------------------------------
+rem A machine-wide PIP_TARGET (common alongside ComfyUI / embedded-Python
+rem setups) makes pip write every package into that folder instead of the
+rem virtual environment. pip still exits 0, so the install looks successful
+rem while nothing is importable. These are cleared for this process only -
+rem setlocal keeps the user's environment untouched.
+set "PIP_TARGET="
+set "PIP_USER="
+set "PIP_PREFIX="
+set "PYTHONPATH="
+set "PYTHONHOME="
+
+rem The same setting can also live in pip.ini, where clearing an environment
+rem variable does not reach it. That is checked once the venv exists, below.
+
 rem -- 1. find a usable interpreter -------------------------------------------
 rem numpy 2.0.2 ships wheels only up to Python 3.12; anything newer would try
 rem to compile from source and fail without a C compiler.
@@ -92,6 +107,27 @@ set "VPY=%CD%\.venv\Scripts\python.exe"
 if not exist "%VPY%" (
     echo   [FEHLER] %VPY% nicht gefunden.
     goto :fail
+)
+
+rem A `target` in pip.ini would redirect installs past the venv just like
+rem PIP_TARGET does, and no environment variable can override it. Detect it and
+rem take the config file out of the loop for this run.
+set "PIPCFG="
+"%VPY%" -m pip config list > "%TEMP%\heartmula_pipcfg.txt" 2>nul
+if exist "%TEMP%\heartmula_pipcfg.txt" (
+    findstr /i "target" "%TEMP%\heartmula_pipcfg.txt" >nul 2>&1
+    if not errorlevel 1 set "PIPCFG=1"
+    del "%TEMP%\heartmula_pipcfg.txt" >nul 2>&1
+)
+if defined PIPCFG (
+    echo.
+    echo   [Hinweis] Ihre pip-Konfiguration enthaelt ein Zielverzeichnis
+    echo             ^(target^). Es wuerde die Pakete an der virtuellen
+    echo             Umgebung vorbeischreiben und wird fuer diesen Lauf
+    echo             ignoriert. Ein Proxy oder eigener Paket-Index aus
+    echo             derselben Datei gilt dann ebenfalls nicht.
+    echo.
+    set "PIP_CONFIG_FILE=nul"
 )
 
 "%VPY%" -m pip install --upgrade pip --quiet
